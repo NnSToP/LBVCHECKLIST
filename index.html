@@ -6,7 +6,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
-<title>Checklist Réception – Systèmes de Sécurité</title>
+<title>Checklist Réception – CFA & Moyens de lutte contre l'incendie</title>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -28,6 +28,9 @@
     --lot-acces: #27ae60;
     --lot-evac: #16a085;
     --lot-ext: #c0392b;
+    --lot-exutoires: #E67E22;
+    --lot-desenf_meca: #E67E22;
+    --lot-antivol: #1E3A8A;
     --conforme: #28a745;
     --nonconforme: #dc3545;
     --na: #fd7e14;
@@ -1174,6 +1177,14 @@
   .lot-tab-acces.active { background: var(--lot-acces); }
   .lot-tab-evac.active { background: var(--lot-evac); }
   .lot-tab-ext.active { background: var(--lot-ext); }
+  .lot-tab-exutoires.active { background: var(--lot-exutoires); }
+  .lot-tab-desenf_meca.active { background: var(--lot-desenf_meca); }
+  .lot-tab-antivol.active { background: var(--lot-antivol); }
+  /* v166 — Autocomplete fiche technique (style liste filtrée) */
+  .ft-ac-menu{position:fixed;z-index:100000;background:#fff;border:1px solid #e2e8f0;border-radius:8px;box-shadow:0 10px 28px rgba(15,23,42,.16);max-height:240px;overflow-y:auto;display:none;font-size:.82rem}
+  .ft-ac-item{padding:8px 12px;cursor:pointer;color:#334155;border-bottom:1px solid #f1f5f9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .ft-ac-item:last-child{border-bottom:none}
+  .ft-ac-item:hover,.ft-ac-item.active{background:#d1f0ea;color:#0f766e}
   .lot-tab-all.active { background: var(--bu-primary); }
 
 /* ═══════════ SIGNATURES ÉLECTRONIQUES (v131) ═══════════ */
@@ -2026,7 +2037,7 @@ tr.ap-overdue td:first-child { box-shadow:inset 4px 0 0 #dc2626; }
         <div class="header-logo" id="logo-default" style="display:flex;width:80px;height:80px;font-size:38px"><i class="fas fa-shield-halved"></i></div>
       </div>
       <div>
-        <div class="header-title">Checklist Réception – Sécurité</div>
+        <div class="header-title">Checklist Réception – CFA & Moyens de lutte contre l'incendie</div>
         <div class="header-sub" id="header-sub-bu">Vérification & Réception des Systèmes de Sécurité</div>
       </div>
     </div>
@@ -2049,7 +2060,7 @@ tr.ap-overdue td:first-child { box-shadow:inset 4px 0 0 #dc2626; }
         <div class="btn-header-menu">
           <button class="btn-header" onclick="toggleReportsMenu()"><i class="fas fa-chart-bar"></i> Rapports <i class="fas fa-caret-down"></i></button>
           <div class="btn-header-dropdown" id="reports-menu-dropdown">
-            <button onclick="openReportEditor('apercu');closeReportsMenu()"><i class="fas fa-chart-bar"></i> Rapport (aperçu)</button>
+            <button onclick="openRapport();closeReportsMenu()"><i class="fas fa-chart-bar"></i> Synthèse</button>
             <button onclick="openReportEditor('pdf');closeReportsMenu()" title="Éditer puis générer le rapport PDF"><i class="fas fa-file-pdf"></i> PDF Rapport</button>
             <button onclick="openReportEditor('pptx');closeReportsMenu()" title="Éditer puis générer le PowerPoint natif"><i class="fas fa-file-powerpoint"></i> PPTX Natif</button>
             <button onclick="openReportEditor('print');closeReportsMenu()"><i class="fas fa-print"></i> Imprimer</button>
@@ -2761,12 +2772,10 @@ const LOTS_BASE = [
         points: [
           'Caméra bien fixée et sécurisée (vis + chevilles)',
           'Orientation correcte selon plan d\'implantation',
-          'Zone de couverture conforme au cahier des charges',
           'Protection contre intempéries (indice IP66 min. ext.)',
           'Câblage protégé (goulotte / conduit apparent)',
           'Étiquetage caméra visible et conforme au plan',
           'Distance focale adaptée à la zone surveillée',
-          'Absence de reflets ou d\'obstacles devant l\'objectif',
           'Signalétique vidéosurveillance affichée (panneaux/pictogrammes) aux entrées et zones filmées, conforme à la réglementation CNDP',
         ]
       },
@@ -2774,9 +2783,6 @@ const LOTS_BASE = [
         title: 'Alimentation & Câblage',
         points: [
           'Alimentation PoE ou 12V/24V conforme au modèle',
-          'Câble réseau Cat6 (ou coaxial RG59) testé',
-          'Longueur de câble dans les limites constructeur',
-          'Pas de courbure excessive sur les câbles',
           'Repérage et identification des câbles en baie',
         ]
       },
@@ -2786,7 +2792,6 @@ const LOTS_BASE = [
           'Image claire, nette et sans artefact',
           'Vision nocturne IR fonctionnelle',
           'Pas de coupure vidéo ni de perte de signal',
-          'Détection de mouvement paramétrée et active',
           'Caméra PTZ : panoramique / tilt / zoom OK',
           'Résolution conforme aux specs (2MP / 4MP / 8MP)',
           'Pas de latence excessive sur le flux live',
@@ -2818,13 +2823,11 @@ const LOTS_BASE = [
         points: [
           'Centrale incendie bien installée (rack / mur)',
           'Détecteurs de fumée optiques bien positionnés',
-          'Détecteurs de chaleur installés',
+          'Détecteurs thermiques installés et correctement positionnés',
           'Déclencheurs manuels visibles, accessibles, signalés',
-          'Sirènes intérieures bien fixées et orientées',
-          'Flash lumineux installés dans zones bruyantes/sourds',
+          'Diffuseur sonore correctement installé et assurant une bonne audibilité',
           'Câblage propre, protégé et repéré',
           'Distances inter-détecteurs conformes à la norme',
-          'Hauteur des détecteurs conforme (max plafond)',
         ]
       },
       {
@@ -2832,8 +2835,8 @@ const LOTS_BASE = [
         points: [
           'Alimentation secteur principale raccordée',
           'Batterie de secours installée et chargée',
-          'Autonomie batterie conforme (24h min.)',
-          'Protections fusibles / disjoncteurs en place',
+          'Autonomie batterie conforme (12h min.)',
+          '12H',
         ]
       },
       {
@@ -2844,7 +2847,6 @@ const LOTS_BASE = [
           'Détection chaleur fonctionne (test thermique)',
           'Déclencheur manuel déclenche l\'alarme',
           'Sirènes s\'activent lors de l\'alarme',
-          'Flash lumineux s\'activent lors de l\'alarme',
           'Alarme générale se déclenche correctement',
           'Temporisations et zones configurées selon plan',
           'Déclenchement du désenfumage',
@@ -2856,12 +2858,7 @@ const LOTS_BASE = [
       {
         title: 'Tests de Validation',
         points: [
-          'Test spray détecteur fumée réussi',
-          'Test déclencheur manuel (DM) réussi',
-          'Test alarme générale validé',
-          'Test sirènes + flash validé',
           'Test coupure courant – bascule batterie OK',
-          'Test reset centrale après alarme réussi',
           'Test transmission vers télésurveillance / PC sécurité',
           'Rapport de test signé et archivé',
         ]
@@ -2882,8 +2879,9 @@ const LOTS_BASE = [
           'Contacts de porte / fenêtre installés correctement',
           'Câblage propre, protégé et repéré',
           'Bouton panique installé (discret et accessible)',
-          'Clavier de code positionné à l\'entrée principale',
-          'Badge lecteur installé et raccordé',
+          'Clavier à code installé à l’entrée principale / accès personnel.',
+          'OU ACCES PERSONNEL POUR L GRAND FORMAT',
+          'AJOUTER LIGNE CONTACT SABOT',
         ]
       },
       {
@@ -2891,7 +2889,7 @@ const LOTS_BASE = [
         points: [
           'Alimentation secteur OK',
           'Batterie secours présente et fonctionnelle',
-          'Sabotage (anti-arrachement) activé sur les détecteurs',
+          'Contact de sol du rideau métallique installé et fonctionnel.',
         ]
       },
       {
@@ -2899,7 +2897,6 @@ const LOTS_BASE = [
         points: [
           'Détection mouvement IR opérationnelle',
           'Détection ouverture porte/fenêtre opérationnelle',
-          'Pas de fausses alarmes constatées',
           'Sirène intérieure fonctionne',
           'Sirène extérieure fonctionne',
           'Bouton panique déclenche alarme immédiatement',
@@ -2911,7 +2908,6 @@ const LOTS_BASE = [
         title: 'Rideaux Métalliques',
         points: [
           'Fonctionnement de l\'ouverture et de la fermeture des rideaux métalliques',
-          'Fonctionnement des commandes des rideaux métalliques',
           'Fonctionnement de la manœuvre de secours (si applicable)',
           'État général des rideaux métalliques',
         ]
@@ -2924,7 +2920,6 @@ const LOTS_BASE = [
           'Test déclenchement alarme intrusion',
           'Test bouton panique (alarme + transmission) OK',
           'Test coupure courant – bascule batterie OK',
-          'Test sabotage (ouverture boîtier détecteur) OK',
         ]
       }
     ]
@@ -2952,7 +2947,7 @@ const LOTS_BASE = [
         points: [
           'Alimentation 12V dédiée raccordée',
           'Batterie secours présente et chargée',
-          'Mode fail-secure / fail-safe configuré selon besoin',
+          'Mode de sécurité positive configuré selon les besoins.',
         ]
       },
       {
@@ -2960,24 +2955,16 @@ const LOTS_BASE = [
         points: [
           'Lecture empreinte rapide et fiable (< 1 sec)',
           'Ouverture porte après authentification réussie',
-          'Reconnaissance utilisateur correcte sans erreur',
           'Temps d\'ouverture correct (3–5 secondes)',
           'Fermeture automatique porte fonctionnelle',
           'Pas de bug ni de blocage système',
-          'Gestion des droits d\'accès configurée (niveaux)',
           'Logs d\'accès enregistrés dans le système',
         ]
       },
       {
         title: 'Tests de Validation',
         points: [
-          'Test utilisateur autorisé – accès accordé OK',
           'Test utilisateur refusé – accès refusé OK',
-          'Test empreinte non enregistrée – refus OK',
-          'Test bouton de sortie intérieur OK',
-          'Test coupure courant – bascule batterie OK',
-          'Test anti-passback (si configuré) OK',
-          'Système stable sans bug sur 30 min',
         ]
       }
     ]
@@ -2997,7 +2984,6 @@ const LOTS_BASE = [
           'Position haut-parleurs correcte',
           'Câblage audio propre, protégé et repéré',
           'Raccordement amplificateur correct',
-          'Pas de croisement câble audio / câble courant fort',
         ]
       },
       {
@@ -3008,8 +2994,6 @@ const LOTS_BASE = [
           'Microphone fonctionne correctement',
           'Diffusion uniforme dans toutes les zones audio',
           'Pas de coupure son ni de larsen',
-          'Égaliseur / DSP paramétré selon acoustique du site',
-          'Niveaux de sortie calibrés (dBu / dBV)',
         ]
       },
       {
@@ -3037,8 +3021,6 @@ const LOTS_BASE = [
           'Panneaux de sortie de secours installés et visibles',
           'Flèches directionnelles vers les sorties en place',
           'Pictogrammes conformes à la norme ISO 7010',
-          'Hauteur d\'installation des panneaux conforme (> 2m)',
-          'Balisage au sol présent dans les couloirs et escaliers',
           'Panneaux d\'évacuation éclairés ou rétro-éclairés',
         ]
       },
@@ -3049,8 +3031,6 @@ const LOTS_BASE = [
           'BAES fonctionnels (test par coupure secteur)',
           'Autonomie BAES conforme (1h min. – norme NF C 71-800)',
           'BAES d\'ambiance dans les locaux > 50m²',
-          'Câblage BAES sur circuit dédié et protégé',
-          'Étiquetage et numérotation des BAES conformes',
           'Pictogramme sur le BAES visible et non dégradé',
         ]
       },
@@ -3078,7 +3058,7 @@ const LOTS_BASE = [
         title: 'Portes Automatiques Principales',
         points: [
           'Fonctionnement de l\'ouverture et de la fermeture des portes automatiques principales',
-          'Fonctionnement des cellules de sécurité',
+          'Fonctionnement des cellules de sécurité au niveau des accès et du parking',
           'Fonctionnement de l\'ouverture automatique en mode évacuation / incendie (si asservie)',
           'État général des portes automatiques',
         ]
@@ -3086,10 +3066,9 @@ const LOTS_BASE = [
       {
         title: 'Boutons de Déverrouillage d\'Urgence',
         points: [
-          'Présence et accessibilité des boutons de déverrouillage d\'urgence',
-          'Fonctionnement du déverrouillage d\'urgence des portes',
-          'Réarmement des boutons après déclenchement',
-          'Signalisation des boutons de déverrouillage d\'urgence',
+          'Présence et accessibilité des déclencheurs manuels verts',
+          'Fonctionnement des déclencheurs manuels verts de déverrouillage d\'urgence des portes.',
+          'Réarmement des déclencheurs manuels verts après déclenchement.',
         ]
       },
       {
@@ -3098,8 +3077,8 @@ const LOTS_BASE = [
           'Déclencheurs manuels d\'alarme accessibles et signalés',
           'Sirènes d\'évacuation audibles dans toutes les zones',
           'Message vocal d\'évacuation diffusé si SMSI présent',
+          'TEST COUPURE SONORISATION',
           'Test d\'alarme évacuation réalisé et validé',
-          'Procédure d\'évacuation affichée et connue du personnel',
         ]
       }
     ]
@@ -3120,6 +3099,7 @@ const LOTS_BASE = [
           'Signalisation au sol et en hauteur en place',
           'Date de vérification annuelle à jour (étiquette valide)',
           'Scellé de sécurité intact (non utilisé)',
+          'Goupille de sécurité intacte et non utilisée',
           'Pression manomètre dans la zone verte',
           'Fiche de maintenance à jour et accessible',
         ]
@@ -6378,6 +6358,7 @@ function openRapport() {
           <th>❌ Non Conformes</th>
           <th>➖ N/A</th>
           <th>% Conformité</th>
+          <th>Verdict</th>
           <th style="min-width:120px">Progression</th>
         </tr>
       </thead>
@@ -6400,6 +6381,7 @@ function openRapport() {
         <td style="text-align:center"><span class="badge-nc">${s.nc}</span></td>
         <td style="text-align:center"><span class="badge-na">${s.na}</span></td>
         <td style="text-align:center;font-weight:700;color:${pct >= 80 ? '#166534' : pct >= 60 ? '#92400e' : '#991b1b'}">${s.pct}</td>
+        <td style="text-align:center">${(function(){const v=getLotVerdict(lot.id);return `<span style="display:inline-block;padding:2px 9px;border-radius:20px;font-weight:800;font-size:.7rem;white-space:nowrap;color:#${v.c};background:#${v.bg}">${v.txt}</span>`;})()}</td>
         <td>
           <div class="mini-progress">
             <div class="mini-progress-fill" style="width:${pct}%;background:${lot.color}"></div>
@@ -6439,7 +6421,7 @@ function openRapport() {
     `;
     ncItems.forEach(item => {
       const thumbsHtml = item.images && item.images.length > 0
-        ? item.images.map(img => `<img src="${img.data}" alt="anomalie" style="width:150px;height:112px;object-fit:cover;border-radius:8px;border:1px solid #e2e8f0;cursor:pointer" onclick="window.open('${img.data}')">`).join(' ')
+        ? item.images.map(img => `<img src="${img.data}" alt="anomalie" style="width:190px;height:142px;object-fit:cover;border-radius:8px;border:1px solid #cbd5e1;cursor:pointer;box-shadow:0 1px 5px rgba(0,0,0,.14)" onclick="window.open('${img.data}')">`).join(' ')
         : '<span style="color:#94a3b8;font-size:.75rem">–</span>';
       html += `
         <tr>
@@ -8906,13 +8888,56 @@ function exportData() {
     payload.archives    = snap.archives;
   } catch(e){ console.warn('Export v5 extras:', e); }
   const json = JSON.stringify(payload, null, 2);
+  const filename = _defaultConfigName() + '.json';
+
+  // Boîte « Enregistrer sous » (choix du dossier) si le navigateur la supporte,
+  // sinon téléchargement classique vers le dossier par défaut.
+  if (window.showSaveFilePicker) {
+    (async () => {
+      try {
+        const handle = await window.showSaveFilePicker({
+          suggestedName: filename,
+          types: [{ description: 'Fichier de configuration (JSON)', accept: { 'application/json': ['.json'] } }]
+        });
+        const writable = await handle.createWritable();
+        await writable.write(json);
+        await writable.close();
+        showToast('💾 Configuration enregistrée !');
+      } catch (err) {
+        if (err && err.name === 'AbortError') return; // l'utilisateur a annulé
+        console.warn('showSaveFilePicker indisponible, repli téléchargement :', err);
+        _downloadConfigFallback(json, filename);
+      }
+    })();
+  } else {
+    _downloadConfigFallback(json, filename);
+  }
+}
+
+function _defaultConfigName() {
+  const bu  = (document.getElementById('proj-bu')?.value || '').trim();
+  const mag = (document.getElementById('proj-magasin')?.value || '').trim();
+  // Plateforme (bu==='BU') : le champ magasin contient la zone
+  const buPart   = bu || 'BU';
+  const lastPart = mag || (bu === 'BU' ? 'ZONE' : 'MAG');
+  const clean = v => (v || '').toString().trim().replace(/[\\/:*?"<>|]+/g, '').replace(/\s+/g, '_');
+  return `CONF-${clean(buPart)}-${clean(lastPart)}`;
+}
+
+function _downloadConfigFallback(json, filename) {
+  // Nom modifiable pour les navigateurs sans « Enregistrer sous »
+  const chosen = window.prompt('Nom du fichier de configuration :', filename);
+  if (chosen === null) return; // annulé
+  let fn = (chosen.trim() || filename);
+  if (!/\.json$/i.test(fn)) fn += '.json';
   const blob = new Blob([json], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  const filename = `Checklist_${(proj.magasin || 'Export').replace(/\s+/g,'_')}_${(proj.date || new Date().toISOString().slice(0,10))}.json`;
-  a.download = filename;
+  a.download = fn;
+  document.body.appendChild(a);
   a.click();
+  a.remove();
   URL.revokeObjectURL(url);
   showToast('💾 Données exportées avec succès !');
 }
@@ -9423,6 +9448,20 @@ const FT_DEFS = {
   },
 };
 
+/* v166 — Section générique « Autres équipements » (ajout libre) injectée dans chaque lot */
+Object.keys(FT_DEFS).forEach(function(lotId){
+  var d = FT_DEFS[lotId];
+  if(!d || !Array.isArray(d.sections)) return;
+  if(!d.sections.some(function(s){return s.id==='autres_equip';})){
+    d.sections.push({ id:'autres_equip', title:'🧩 Autres équipements', type:'dynamic',
+      cols:[
+        { id:'nom',   label:"Nom de l'équipement", type:'text' },
+        { id:'specs', label:'Caractéristiques / Spécifications', type:'text' },
+        { id:'qte',   label:'Qté', type:'number' }
+      ] });
+  }
+});
+
 /* ═══ AJOUT: État (Conforme/Partiel/Non Conforme) + Observation par élément ═══ */
 Object.keys(FT_DEFS).forEach(function(lotId){
   var d = FT_DEFS[lotId];
@@ -9722,11 +9761,82 @@ function renderFTSections(lotId, def) {
         ${rows.map((row,ri)=>renderFTRow(lotId,sec,row,ri)).join('')}
       </div>
       <button class="ft-add-btn" onclick="addFTRow('${lotId}','${sec.id}')">
-        <i class="fas fa-plus"></i> Ajouter
+        <i class="fas fa-plus"></i> ${sec.id==='autres_equip' ? 'Ajouter un équipement' : 'Ajouter'}
       </button>
     </div>`;
   });
   return html;
+}
+
+/* v166 — Autocomplete stylé pour les listes de la fiche technique (remplace <datalist>) */
+let _ftAcInput=null, _ftAcItems=[], _ftAcIdx=-1;
+function _ftAcMenu(){
+  let m=document.getElementById('ft-ac-menu');
+  if(!m){ m=document.createElement('div'); m.id='ft-ac-menu'; m.className='ft-ac-menu'; document.body.appendChild(m); }
+  return m;
+}
+function ftACopen(inp){
+  _ftAcBind();
+  let opts=[]; try{ opts=JSON.parse(decodeURIComponent(inp.dataset.opts||'[]')); }catch(e){}
+  const q=(inp.value||'').toLowerCase().trim();
+  const filtered = q ? opts.filter(o=>o.toLowerCase().indexOf(q)!==-1) : opts.slice();
+  _ftAcInput=inp; _ftAcItems=filtered; _ftAcIdx=-1;
+  const menu=_ftAcMenu();
+  if(!filtered.length){ menu.style.display='none'; return; }
+  menu.innerHTML=filtered.map((o,i)=>'<div class="ft-ac-item" data-i="'+i+'" onmousedown="ftACpick(event,'+i+')">'+String(o).replace(/</g,'&lt;')+'</div>').join('');
+  menu.style.display='block';
+  _ftAcReposition();
+}
+function ftACpick(ev,i){
+  ev.preventDefault();
+  const inp=_ftAcInput; if(!inp)return;
+  inp.value=_ftAcItems[i];
+  _ftAcMenu().style.display='none';
+  inp.dispatchEvent(new Event('change',{bubbles:true}));
+}
+function ftACkey(ev,inp){
+  const menu=_ftAcMenu();
+  if(menu.style.display!=='block') return;
+  if(ev.key==='ArrowDown'){ ev.preventDefault(); _ftAcIdx=Math.min(_ftAcIdx+1,_ftAcItems.length-1); _ftAcHL(); }
+  else if(ev.key==='ArrowUp'){ ev.preventDefault(); _ftAcIdx=Math.max(_ftAcIdx-1,0); _ftAcHL(); }
+  else if(ev.key==='Enter'){ if(_ftAcIdx>=0){ ev.preventDefault(); inp.value=_ftAcItems[_ftAcIdx]; menu.style.display='none'; inp.dispatchEvent(new Event('change',{bubbles:true})); } }
+  else if(ev.key==='Escape'){ menu.style.display='none'; }
+}
+function _ftAcHL(){
+  const menu=_ftAcMenu();
+  Array.prototype.forEach.call(menu.children,function(c,i){
+    c.classList.toggle('active', i===_ftAcIdx);
+    if(i===_ftAcIdx && c.scrollIntoView) c.scrollIntoView({block:'nearest'});
+  });
+}
+function ftACblur(inp){ /* fermeture gérée globalement (mousedown/scroll), plus de fermeture au blur */ }
+let _ftAcBound=false;
+function _ftAcBind(){
+  if(_ftAcBound) return; _ftAcBound=true;
+  document.addEventListener('mousedown', function(e){
+    const m=document.getElementById('ft-ac-menu');
+    if(!m || m.style.display!=='block') return;
+    if(m.contains(e.target) || e.target===_ftAcInput) return;
+    m.style.display='none';
+  }, true);
+  window.addEventListener('scroll', _ftAcReposition, true);
+  window.addEventListener('resize', _ftAcReposition, true);
+}
+function _ftAcReposition(){
+  const m=document.getElementById('ft-ac-menu');
+  if(!m || m.style.display!=='block' || !_ftAcInput) return;
+  if(!document.body.contains(_ftAcInput)){ m.style.display='none'; return; }
+  const r=_ftAcInput.getBoundingClientRect();
+  if(r.bottom<0 || r.top>window.innerHeight){ m.style.display='none'; return; }
+  m.style.width=Math.round(r.width)+'px';
+  m.style.left=Math.round(Math.max(4, Math.min(r.left, window.innerWidth - r.width - 4)))+'px';
+  const mh=m.offsetHeight || 240;
+  const spaceBelow=window.innerHeight - r.bottom;
+  if(spaceBelow < mh + 8 && r.top > mh + 8){
+    m.style.top=Math.round(r.top - mh - 2)+'px';   // pas de place en dessous → au-dessus
+  } else {
+    m.style.top=Math.round(r.bottom + 2)+'px';
+  }
 }
 
 function renderFTRow(lotId, sec, row, ri) {
@@ -9742,9 +9852,9 @@ function renderFTRow(lotId, sec, row, ri) {
       const cc = CM[val] || '#64748b';
       inp = `<select class="ft-dyn-input" style="font-weight:600;color:${cc}" onchange="saveFTRow('${lotId}','${sec.id}',${ri},'${col.id}',this.value);this.style.color=({'Conforme':'#16a34a','Partiel':'#d97706','Non Conforme':'#dc2626'})[this.value]||'#64748b'">\n        <option value="">\u2013</option>\n        ${col.opts.map(o=>`<option value="${o}" ${val===o?'selected':''}>${o}</option>`).join('')}\n      </select>`;
     } else if (col.type === 'select') {
-      const dlId = `ftdl-${lotId}-${sec.id}-${col.id}-${ri}`;
-      const dlOpts = (col.opts||[]).filter(o=>o && o.toLowerCase()!=='autre');
-      inp = `<input type="text" class="ft-dyn-input" list="${dlId}" value="${val||''}" placeholder="Choisir ou saisir…"\n        onchange="saveFTRow('${lotId}','${sec.id}',${ri},'${col.id}',this.value);refreshFTRow('${lotId}','${sec.id}',${ri})">\n        <datalist id="${dlId}">${dlOpts.map(o=>`<option value="${o}"></option>`).join('')}</datalist>`;
+      const acOpts = (col.opts||[]).filter(o=>o && o.toLowerCase()!=='autre');
+      const acData = encodeURIComponent(JSON.stringify(acOpts));
+      inp = `<input type="text" class="ft-dyn-input ft-ac" value="${val||''}" placeholder="Choisir ou saisir…" autocomplete="off" data-opts="${acData}" onfocus="ftACopen(this)" oninput="ftACopen(this)" onkeydown="ftACkey(event,this)" onchange="saveFTRow('${lotId}','${sec.id}',${ri},'${col.id}',this.value);refreshFTRow('${lotId}','${sec.id}',${ri})">`;
     } else if (col.type === 'number') {
       inp = `<input type="number" class="ft-dyn-input ft-dyn-num" min="0" value="${val||''}" placeholder="0"\n        onchange="saveFTRow('${lotId}','${sec.id}',${ri},'${col.id}',this.value)">`;
     } else {
@@ -10249,7 +10359,7 @@ function applyBUTheme(bu) {
   // ── Subtitle
   const subEl = document.getElementById('header-sub-bu');
   if (subEl && bu) {
-    subEl.textContent = 'BU : ' + (BU_LABELS[bu] || bu) + ' – Réception Systèmes de Sécurité';
+    subEl.textContent = 'BU : ' + (BU_LABELS[bu] || bu);
   } else if (subEl) {
     subEl.textContent = 'Vérification & Réception des Systèmes de Sécurité';
   }
